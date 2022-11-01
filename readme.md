@@ -37,7 +37,7 @@ export ACR_NAME=cr$SUFFIX
 
 
 # provide a unique name for the endpoint
-export ENDPOINT_NAME=mlwonlinesecure$SUFFIX
+export ENDPOINT_NAME=mlwonlinesecurex$SUFFIX
 
 # name of the image that will be built for this sample and pushed into acr - no need to change this
 export IMAGE_NAME="img"
@@ -85,9 +85,9 @@ export DEPLOYMENT_FILE_PATH="endpoints/online/managed/vnet/sample/blue-deploymen
 export SAMPLE_REQUEST_PATH="endpoints/online/managed/vnet/sample/sample-request.json"
 export ENV_DIR_PATH="endpoints/online/managed/vnet/sample/environment"
 
-sudo mkdir -p /home/samples; sudo git clone -b main --depth 1 https://github.com/Azure/azureml-examples.git /home/samples/azureml-examples
+# sudo mkdir -p /home/samples; sudo git clone -b main --depth 1 https://github.com/Azure/azureml-examples.git /home/samples/azureml-examples
 
-sudo mkdir -p /home/samples; sudo git clone -b master --depth 1 https://github.com/michalmar/AzureML-VNET.git /home/samples/azureml-examples
+sudo mkdir -p /home/samples; sudo git clone -b master https://github.com/michalmar/AzureML-VNET.git /home/samples/azureml-examples
 
 
 sudo mv /home/samples/azureml-examples/cli/endpoints/ /home/samples/
@@ -95,7 +95,7 @@ sudo rm -rf /home/samples/azureml-examples/
 
 
 # Navigate to the samples
-cd /home/samples/$ENV_DIR_PATH
+cd /home/samples/azureml-examples/$ENV_DIR_PATH
 
 # login to acr. Optionally, to avoid using sudo, complete the docker post install steps: https://docs.docker.com/engine/install/linux-postinstall/
 sudo az acr login -n "$ACR_NAME"
@@ -141,13 +141,13 @@ Code: UserError
 ### Create a secured managed online endpoint
 
 ```sh
-cd /home/samples/
+cd /home/samples/azureml-examples
 
 # create endpoint
 az ml online-endpoint create --name $ENDPOINT_NAME -f $ENDPOINT_FILE_PATH --set public_network_access="disabled"
 
 # create deployment in managed vnet
-az ml online-deployment create --name blue --endpoint $ENDPOINT_NAME -f $DEPLOYMENT_FILE_PATH --all-traffic --set environment.image="$ACR_NAME.azurecr.io/repo/$IMAGE_NAME:v1" egress_public_network_access="disabled"
+az ml online-deployment create --name yellow --endpoint $ENDPOINT_NAME -f $DEPLOYMENT_FILE_PATH --all-traffic --set environment.image="$ACR_NAME.azurecr.io/repo/$IMAGE_NAME:v1" egress_public_network_access="disabled"
 ```
 > Note: if you face errors due to the `V1LegacyMode == true`, see previous section.
 
@@ -162,4 +162,25 @@ az ml online-endpoint invoke --name $ENDPOINT_NAME --request-file $SAMPLE_REQUES
 ENDPOINT_KEY=$(az ml online-endpoint get-credentials -n $ENDPOINT_NAME -o tsv --query primaryKey)
 SCORING_URI=$(az ml online-endpoint show -n $ENDPOINT_NAME -o tsv --query scoring_uri)
 curl --request POST "$SCORING_URI" --header "Authorization: Bearer $ENDPOINT_KEY" --header 'Content-Type: application/json' --data @$SAMPLE_REQUEST_PATH
+```
+
+### Jump VM Windows - to check the AzureML Studio
+Since the AzureML Worskapce is secured by Private Endpoint, it is not accessible from internet, which is what we intended. But sometimes is usefull to have access to the AzureML Studio (UI), in order to achieve that, you can create a JUMP VM based on Windows and use RDP to use browser to show the UI.
+
+```sh
+az vm create --name jump-vm-win --vnet-name vnet-$SUFFIX --subnet snet-scoring --image Win2022Datacenter --admin-username mma --admin-password <PASS>
+```
+output:
+```
+{
+  "fqdns": "",
+  "id": "/subscriptions/xxx/resourceGroups/rg-mlw-secure/providers/Microsoft.Compute/virtualMachines/jump-vm-winx",
+  "location": "westeurope",
+  "macAddress": "00-0D-3A-25-75-E1",
+  "powerState": "VM running",
+  "privateIpAddress": "192.168.0.14",
+  "publicIpAddress": "52.166.60.121",
+  "resourceGroup": "rg-mlw-secure",
+  "zones": ""
+}
 ```
