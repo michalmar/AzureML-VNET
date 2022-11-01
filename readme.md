@@ -86,6 +86,10 @@ export SAMPLE_REQUEST_PATH="endpoints/online/managed/vnet/sample/sample-request.
 export ENV_DIR_PATH="endpoints/online/managed/vnet/sample/environment"
 
 sudo mkdir -p /home/samples; sudo git clone -b main --depth 1 https://github.com/Azure/azureml-examples.git /home/samples/azureml-examples
+
+sudo mkdir -p /home/samples; sudo git clone -b master --depth 1 https://github.com/michalmar/AzureML-VNET.git /home/samples/azureml-examples
+
+
 sudo mv /home/samples/azureml-examples/cli/endpoints/ /home/samples/
 sudo rm -rf /home/samples/azureml-examples/
 
